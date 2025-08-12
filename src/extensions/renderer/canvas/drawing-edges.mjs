@@ -151,7 +151,8 @@ const drawEdgeOverlayUnderlay = function( overlayOrUnderlay ) {
     if( !edge.visible() ){ return; }
   
     let opacity = edge.pstyle(`${overlayOrUnderlay}-opacity`).value;
-  
+    let fillStyle = edge.pstyle(`${overlayOrUnderlay}-fill`)?.value;
+
     if( opacity === 0 ){ return; }
   
     let r = this;
@@ -169,9 +170,20 @@ const drawEdgeOverlayUnderlay = function( overlayOrUnderlay ) {
     } else {
       context.lineCap = 'round';
     }
-  
-    r.colorStrokeStyle( context, color[0], color[1], color[2], opacity );
-  
+
+    if (fillStyle === 'linear-gradient' || fillStyle === 'radial-gradient') {
+      const gradient = r.createGradientStyleFor(context, overlayOrUnderlay, edge, fillStyle, opacity); 
+      if (gradient) { 
+        context.strokeStyle = gradient;
+        context.fillStyle = gradient;
+        } else {
+          const color = edge.pstyle(`${overlayOrUnderlay}-color`).value;
+          r.colorStrokeStyle(context, color[0], color[1], color[2], opacity);
+        }
+      } else {
+      r.colorStrokeStyle(context, color[0], color[1], color[2], opacity);
+    }
+
     r.drawEdgePath(
       edge,
       context,

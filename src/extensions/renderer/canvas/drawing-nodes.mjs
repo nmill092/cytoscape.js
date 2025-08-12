@@ -593,6 +593,21 @@ const drawNodeOverlayUnderlay = function( overlayOrUnderlay ) {
     let color = node.pstyle( `${overlayOrUnderlay}-color` ).value;
     let shape = node.pstyle( `${overlayOrUnderlay}-shape` ).value;
     let radius = node.pstyle( `${overlayOrUnderlay}-corner-radius` ).value;
+    let fillStyle = node.pstyle(`${overlayOrUnderlay}-fill`)?.value;
+
+     if (fillStyle === 'linear-gradient' || fillStyle === 'radial-gradient') {
+      const gradient = r.createGradientStyleFor(context, overlayOrUnderlay, node, fillStyle, opacity); 
+      
+      if (gradient) {
+        context.strokeStyle = gradient;
+        context.fillStyle = gradient;
+        } else {
+          const color = node.pstyle(`${overlayOrUnderlay}-color`).value;
+          r.colorFillStyle(context, color[0], color[1], color[2], opacity);
+        }
+      } else {
+      r.colorFillStyle( context, color[0], color[1], color[2], opacity );
+    }
 
     if( opacity > 0 ){
       pos = pos || node.position();
@@ -603,8 +618,6 @@ const drawNodeOverlayUnderlay = function( overlayOrUnderlay ) {
         nodeWidth = node.width() + 2 * padding;
         nodeHeight = node.height() + 2 * padding;
       }
-
-      r.colorFillStyle( context, color[0], color[1], color[2], opacity );
 
       r.nodeShapes[shape].draw(
         context,

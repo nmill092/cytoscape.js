@@ -51,8 +51,9 @@ CRp.paintCache = function( context ){
 };
 
 CRp.createGradientStyleFor = function( context, shapeStyleName, ele, fill, opacity ){
-  let gradientStyle;
-  let usePaths = this.usePaths();
+  let gradientStyle;  
+
+  const inNodeLocalCoords = ele.isNode() && shapeStyleName === 'background' && this.usePaths();
 
   let colors = ele.pstyle(shapeStyleName + '-gradient-stop-colors').value,
     positions = ele.pstyle(shapeStyleName + '-gradient-stop-positions').pfValue;
@@ -66,9 +67,9 @@ CRp.createGradientStyleFor = function( context, shapeStyleName, ele, fill, opaci
 
       gradientStyle = context.createRadialGradient(mid.x, mid.y, 0, mid.x, mid.y, Math.max(d1, d2));
     } else {
-      let pos = usePaths ? {x: 0, y: 0 } : ele.position(),
+      let pos = inNodeLocalCoords ? { x: 0, y: 0 } : ele.position(),
         width = ele.paddedWidth(), height = ele.paddedHeight();
-      gradientStyle = context.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, Math.max(width, height));
+        gradientStyle = context.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, Math.max(width, height));
     }
   } else {
     if (ele.isEdge()) {
@@ -76,11 +77,11 @@ CRp.createGradientStyleFor = function( context, shapeStyleName, ele, fill, opaci
 
       gradientStyle = context.createLinearGradient(start.x, start.y, end.x, end.y);
     } else {
-      let pos = usePaths ? { x: 0, y: 0 } : ele.position(),
+      let pos = inNodeLocalCoords ? { x: 0, y: 0 } : ele.position(),
         width = ele.paddedWidth(), height = ele.paddedHeight(),
         halfWidth = width / 2, halfHeight = height / 2;
-      let direction = ele.pstyle('background-gradient-direction').value;
-
+      let direction = ele.pstyle(`${shapeStyleName}-gradient-direction`).value;
+      
       switch (direction) {
         case 'to-bottom':
           gradientStyle = context.createLinearGradient(pos.x, pos.y - halfHeight, pos.x, pos.y + halfHeight);
@@ -119,7 +120,7 @@ CRp.createGradientStyleFor = function( context, shapeStyleName, ele, fill, opaci
 
   let length = colors.length;
   for (let i = 0; i < length; i++) {
-    gradientStyle.addColorStop(hasPositions ? positions[i] : i / (length - 1), 'rgba(' + colors[i][0] + ',' + colors[i][1] + ',' + colors[i][2] + ',' + opacity + ')');
+    gradientStyle.addColorStop(hasPositions ? positions[i] : i / (length - 1), 'rgba(' + colors[i][0] + ',' + colors[i][1] + ',' + colors[i][2] + ',' + (colors[i][3] ?? opacity) + ')');
   }
 
   return gradientStyle;
